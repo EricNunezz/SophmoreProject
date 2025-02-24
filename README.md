@@ -1,6 +1,6 @@
 Overview
 ----
-My project is a web-based fitness application that generates personalized workout programs based on user input. Users take a quiz detailing their fitness goals, experience level, and preferences. The responses are processed using OpenAI’s API to create a customized workout plan. Additionally, users can log and track their workout progress, storing their data in a database.
+My project is a web-based fitness application called SmartFit that generates personalized workout programs based on user input. Users take a quiz detailing their fitness goals, experience level, and preferences. The responses are processed using OpenAI’s API to create a customized workout plan. Additionally, users can log and track their workout progress, storing their data in a database.
 
 Problem Statement
 ----
