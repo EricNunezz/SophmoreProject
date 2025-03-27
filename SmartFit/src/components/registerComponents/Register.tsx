@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { Link } from "react-router-dom"
-import { profile } from "console"
 
 export function RegisterForm({
   className,
@@ -68,7 +67,7 @@ export function RegisterForm({
           setMessage("Error: User Data Not Found");
       }
 
-      // Clear fields after successful registration
+      //clear fields after successful registration
       setName("")
       setEmail("")
       setPassword("")
