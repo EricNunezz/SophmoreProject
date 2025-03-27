@@ -1,54 +1,75 @@
-# React + TypeScript + Vite
+Overview
+----
+My project is a web-based fitness application called SmartFit that generates personalized workout programs based on user input. Users take a quiz detailing their fitness goals, experience level, and preferences. The responses are processed using OpenAI’s API to create a customized workout plan. Additionally, users can log and track their workout progress, storing their data in a database.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Problem Statement
+----
+Many people struggle to create an effective workout routine tailored to their fitness level and goals. Generic workout plans do not account for individual preferences or experience. Additionally, tracking progress can be tedious without a structured system. This project aims to solve these issues by providing an AI-generated workout plan and a built-in progress tracking feature.
 
-Currently, two official plugins are available:
+User Cases
+----
+1. User Registration & Authentication
+Users can sign up using their email, and password(for now).
+Returning users can log in to access their personalized workout plans.
+The system verifies credentials and grants access securely.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+3. Taking a Quiz for a Personalized Workout Plan
+Users answer questions regarding their fitness level, goals, preferred workout style, availability, etc...
+The quiz responses are sent to Geminis API to generate a tailored workout program.
 
-## Expanding the ESLint configuration
+4. AI-Generated Workout Plan
+The system sends quiz responses to Geminis API.
+AI generates a structured workout program (split, exercises, sets, reps, etc...).
+The system saves the generated plan in the database and displays it on the user’s dashboard.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+5. Viewing & Following the Workout Plan
+Users can view their AI-generated workout plan in their dashboard.
+Exercises, sets, reps, and instructions are displayed.
+Users follow the workout plan during training sessions.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+6. Logging Workout Progress
+Users log their daily workouts by entering weights, reps, and personal notes.
+The system saves the data in a MySQL database for future tracking.
+Users can view their past workouts in a progress tracker.
+Technology Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Frontend:
+React and Typescript
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Backend:
+Supabase
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Database:
+PostgresSQL 
+
+Project Timeline:
+-------
+Week 5-6: Project Setup & Authentication
+Set up the development environment
+Install dependencies (Node.js, Express.js, MySQL, OpenAI API)
+Configure the database
+Build user authentication (register, login, session handling)
+Ensure secure authentication flow
+
+Week 7-8: Quiz & AI Integration
+Develop quiz UI for user input
+Create an API to send quiz responses to OpenAI API
+Process AI-generated workout plans and store them in the database
+
+Week 9-10: Dashboard & Workout Tracking
+Display AI-generated workout plan on the user dashboard
+Implement workout logging system for users to track progress
+
+Week 11-13: Testing & Optimization
+Perform full application testing and debugging
+Optimize database queries and API performance
+
+Week 14-15 Deploy & Final Adjustments 
+Final Testing and fixes
+
+Each phase of the project is given two weeks to allow time for:
+
+Development & Testing: Ensuring each feature works correctly before moving forward.
+Bug Fixing & Adjustments: Unexpected issues can arise, and extra time helps resolve them without rushing.
+Learning & Refinement: Since new technologies (Node.js, OpenAI API, MySQL) are involved, time is allocated for debugging and improving implementation.
+Iteration Based on Feedback: If necessary, minor tweaks can be made before moving to the next phase.
