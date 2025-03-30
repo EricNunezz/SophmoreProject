@@ -1,20 +1,17 @@
-//import { Button } from "@/components/ui/button"
-//import { LoginForm } from "@/components/login-form"
-//import { Quiz } from "@/components/quizComponents/Quiz"
-//import { useState } from "react"
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home/homePage";
 import Dashboard from "@/pages/Dashboard/dashboardPage";
 import Login from "@/pages/Login/loginPage";
 import Register from "@/pages/Register/registerPage";
 import QuizPage from "@/pages/Quiz/quizPage";
+import GeminiPage from "@/pages/Gemini/geminiPage";
 
 
 function App() {
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         {/* home*/}
         <Route path = "/" element = {<Home/>}/>
@@ -30,9 +27,16 @@ function App() {
 
          {/* Quiz*/}
          <Route path = "/quizPage" element = {<QuizPage/>}/>
+
+
+          {/* Quiz*/}
+         <Route path = "/geminiPage" element = {<GeminiPage/>}/>
+         
+
+         
       </Routes>
-    </BrowserRouter>
-  
+    </Router>
+    
   )
 }
 

@@ -10,6 +10,8 @@ function Home(){
       <Link to = "/Login">Login</Link>
       <br></br>
       <Link to = "/quizPage">Quiz</Link>
+      <br></br>
+      <Link to = "/geminiPage">Gemini</Link>
 
 
     </div>

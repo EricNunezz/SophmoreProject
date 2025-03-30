@@ -62,7 +62,7 @@ export function RegisterForm({
           setMessage("Error saving user profile: " + profileError.message);
           return;
         }
-        setMessage("Accound and profile created successfully!");
+        setMessage("Account and profile created successfully!");
       } else{
           setMessage("Error: User Data Not Found");
       }
