@@ -16,20 +16,20 @@ function App() {
         {/* home*/}
         <Route path = "/" element = {<Home/>}/>
 
-        {/* dashboard*/}
+        {/*dashboard*/}
         <Route path = "/Dashboard" element = {<Dashboard/>}/>
 
-        {/* login*/}
+        {/*login*/}
         <Route path = "/Login" element = {<Login/>}/>
 
-        {/* Register*/}
+        {/*Register*/}
         <Route path = "/Register" element = {<Register/>}/>
 
-         {/* Quiz*/}
+         {/*Quiz*/}
          <Route path = "/quizPage" element = {<QuizPage/>}/>
 
 
-          {/* Quiz*/}
+          {/*Gemini*/}
          <Route path = "/geminiPage" element = {<GeminiPage/>}/>
          
 

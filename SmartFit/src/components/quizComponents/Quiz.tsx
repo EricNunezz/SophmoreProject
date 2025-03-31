@@ -29,7 +29,6 @@ export function Quiz() {
 
   const handleSubmit = () => {
     console.log("Quiz responses:", quizData)
-    // Here you'll send the data to Gemini API later
   }
 
   return (
@@ -38,7 +37,7 @@ export function Quiz() {
         <CardTitle className="text-2xl text-center">Fitness Assessment Quiz</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Question 1 */}
+        {/* question1 */}
         <div className="space-y-2">
           <Label className="text-lg">What is your current fitness level?</Label>
           <Select
@@ -56,7 +55,7 @@ export function Quiz() {
           </Select>
         </div>
 
-        {/* Question 2 */}
+        {/* question 2 */}
         <div className="space-y-2">
           <Label className="text-lg">What are your primary fitness goals?</Label>
           <Select
@@ -76,7 +75,7 @@ export function Quiz() {
           </Select>
         </div>
 
-        {/* Question 3 */}
+        {/* question 3 */}
         <div className="space-y-4">
           <Label className="text-lg">How often can you work out?</Label>
           <div className="grid grid-cols-2 gap-4">
@@ -121,7 +120,7 @@ export function Quiz() {
           </div>
         </div>
 
-        {/* Question 4 */}
+        {/* question 4 */}
         <div className="space-y-2">
           <Label className="text-lg">What equipment do you have access to?</Label>
           <Select
@@ -138,8 +137,8 @@ export function Quiz() {
             </SelectContent>
           </Select>
         </div>
-
-        {/* Question 5 - Keep Textarea for limitations */}
+        
+        {/* question 5 - keep textarea for limitations */}
         <div className="space-y-2">
           <Label className="text-lg">Do you have any physical limitations or injuries?</Label>
           <Textarea
@@ -150,7 +149,7 @@ export function Quiz() {
           />
         </div>
 
-        {/* Question 6 */}
+        {/* question 6 */}
         <div className="space-y-2">
           <Label className="text-lg">What type of workouts do you prefer?</Label>
           <Select
@@ -170,7 +169,7 @@ export function Quiz() {
           </Select>
         </div>
 
-        {/* Question 7 - Updated Body Stats */}
+        {/* question 7 */}
         <div className="space-y-2">
           <Label className="text-lg">
             What are your current body stats?
@@ -234,7 +233,7 @@ export function Quiz() {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* submit button */}
         <div className="pt-6">
           <Button 
             className="w-full" 

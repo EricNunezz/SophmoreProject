@@ -13,21 +13,21 @@ Users can sign up using their email, and password(for now).
 Returning users can log in to access their personalized workout plans.
 The system verifies credentials and grants access securely.
 
-3. Taking a Quiz for a Personalized Workout Plan
+2. Taking a Quiz for a Personalized Workout Plan
 Users answer questions regarding their fitness level, goals, preferred workout style, availability, etc...
 The quiz responses are sent to Geminis API to generate a tailored workout program.
 
-4. AI-Generated Workout Plan
+3. AI-Generated Workout Plan
 The system sends quiz responses to Geminis API.
 AI generates a structured workout program (split, exercises, sets, reps, etc...).
 The system saves the generated plan in the database and displays it on the user’s dashboard.
 
-5. Viewing & Following the Workout Plan
+4. Viewing & Following the Workout Plan
 Users can view their AI-generated workout plan in their dashboard.
 Exercises, sets, reps, and instructions are displayed.
 Users follow the workout plan during training sessions.
 
-6. Logging Workout Progress
+5. Logging Workout Progress
 Users log their daily workouts by entering weights, reps, and personal notes.
 The system saves the data in a MySQL database for future tracking.
 Users can view their past workouts in a progress tracker.
@@ -40,32 +40,34 @@ Backend:
 Supabase
 
 Database:
-PostgresSQL 
+Supabase database with PostgresSQL 
 
 Project Timeline:
 -------
-Week 5-6: Project Setup & Authentication
+Week 5-6: Project Setup 
 Set up the development environment
-Install dependencies (Node.js, Express.js, MySQL, OpenAI API)
-Configure the database
+Install dependencies 
+Setup the database
+
+
+Week 7-8: Authentification & Quiz UI
 Build user authentication (register, login, session handling)
 Ensure secure authentication flow
-
-Week 7-8: Quiz & AI Integration
 Develop quiz UI for user input
-Create an API to send quiz responses to OpenAI API
+
+
+Week 9-12: Gemini API
+Setup Gemini API & Test
+Create an API to send quiz responses to Gemini API
 Process AI-generated workout plans and store them in the database
 
-Week 9-10: Dashboard & Workout Tracking
+
+Week 13-15: Dashboard & Testing
 Display AI-generated workout plan on the user dashboard
 Implement workout logging system for users to track progress
+Ensure all user cases work and test program
 
-Week 11-13: Testing & Optimization
-Perform full application testing and debugging
-Optimize database queries and API performance
 
-Week 14-15 Deploy & Final Adjustments 
-Final Testing and fixes
 
 Each phase of the project is given two weeks to allow time for:
 

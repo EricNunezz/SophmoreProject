@@ -18,7 +18,7 @@ export async function getGeminiResponse(prompt: string): Promise<string> {
     return responseText;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    // Return a user-friendly error message
+    
     return `Error: ${error instanceof Error ? error.message : "Unknown error occurred"}`;
   }
 }

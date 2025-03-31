@@ -1,10 +1,10 @@
-import { GeminiCard } from "@/components/geminiComponents/gemini"; // Import the correct component
+import { GeminiCard } from "@/components/geminiComponents/gemini"; 
 
 function GeminiPage() {
   return (
     <div>
       <h1>Welcome to the Gemini page</h1>
-      <GeminiCard /> {/* Use GeminiCard instead of Gemini */}
+      <GeminiCard /> 
     </div>
   );
 }
