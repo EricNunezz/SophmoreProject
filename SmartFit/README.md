@@ -56,10 +56,12 @@ Ensure secure authentication flow
 Develop quiz UI for user input
 
 
-Week 9-12: Gemini API
+Week 9-12: Gemini API & Database
 Setup Gemini API & Test
+Setup Database
 Create an API to send quiz responses to Gemini API
 Process AI-generated workout plans and store them in the database
+
 
 
 Week 13-15: Dashboard & Testing
