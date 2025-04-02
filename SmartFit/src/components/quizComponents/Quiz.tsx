@@ -138,7 +138,7 @@ export function Quiz() {
           </Select>
         </div>
         
-        {/* question 5 - keep textarea for limitations */}
+        {/* question 5 */}
         <div className="space-y-2">
           <Label className="text-lg">Do you have any physical limitations or injuries?</Label>
           <Textarea
