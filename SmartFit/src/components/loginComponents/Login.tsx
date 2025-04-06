@@ -97,7 +97,7 @@ export function LoginForm({
               
               <Button 
                 type="submit" 
-                className="w-full h-14 text-lg font-medium mt-2"
+                className="w-full h-14 text-lg font-medium mt-2 bg-teal-500 hover:bg-teal-600"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
@@ -106,7 +106,7 @@ export function LoginForm({
             
             <div className="mt-8 text-center text-lg">
               Don&apos;t have an account?{" "}
-              <Link to="/register" className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold">
+              <Link to="/register" className="text-teal-500 underline underline-offset-4 hover:text-teal-600 font-semibold">
                 Sign up
               </Link>
             </div>

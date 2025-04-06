@@ -1,8 +1,13 @@
+import Layout from "@/components/layoutComponent/Layout";
+
+
 function Dashboard(){
   return(
-    <div>
-      <h1> Welcome to the Dashboard</h1>
-    </div>
+    <Layout>
+      <div>
+        <h1> Welcome to the Dashboard</h1>
+      </div>
+    </Layout>
   )
 }
 

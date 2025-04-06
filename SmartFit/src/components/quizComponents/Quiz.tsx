@@ -32,19 +32,19 @@ export function Quiz() {
   }
 
   return (
-    <Card className="w-full max-w-3xl">
-      <CardHeader>
-        <CardTitle className="text-2xl text-center">Fitness Assessment Quiz</CardTitle>
+    <Card className="w-full max-w-3xl border-teal-100 shadow-lg">
+      <CardHeader className="border-b border-teal-100">
+        <CardTitle className="text-2xl text-center text-gray-800">Fitness Assessment Quiz</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         {/* question1 */}
         <div className="space-y-2">
-          <Label className="text-lg">What is your current fitness level?</Label>
+          <Label className="text-lg font-medium">What is your current fitness level?</Label>
           <Select
             value={quizData.fitnessLevel}
             onValueChange={(value) => handleChange("fitnessLevel", value)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full focus:ring-teal-500">
               <SelectValue placeholder="Select your fitness level" />
             </SelectTrigger>
             <SelectContent>
@@ -57,12 +57,12 @@ export function Quiz() {
 
         {/* question 2 */}
         <div className="space-y-2">
-          <Label className="text-lg">What are your primary fitness goals?</Label>
+          <Label className="text-lg font-medium">What are your primary fitness goals?</Label>
           <Select
             value={quizData.fitnessGoals}
             onValueChange={(value) => handleChange("fitnessGoals", value)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full focus:ring-teal-500">
               <SelectValue placeholder="Select your main goal" />
             </SelectTrigger>
             <SelectContent>
@@ -77,7 +77,7 @@ export function Quiz() {
 
         {/* question 3 */}
         <div className="space-y-4">
-          <Label className="text-lg">How often can you work out?</Label>
+          <Label className="text-lg font-medium">How often can you work out?</Label>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Days per week</Label>
@@ -85,7 +85,7 @@ export function Quiz() {
                 value={quizData.daysPerWeek}
                 onValueChange={(value) => handleChange("daysPerWeek", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="focus:ring-teal-500">
                   <SelectValue placeholder="Select days" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,7 +106,7 @@ export function Quiz() {
                 value={quizData.sessionLength}
                 onValueChange={(value) => handleChange("sessionLength", value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="focus:ring-teal-500">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,12 +122,12 @@ export function Quiz() {
 
         {/* question 4 */}
         <div className="space-y-2">
-          <Label className="text-lg">What equipment do you have access to?</Label>
+          <Label className="text-lg font-medium">What equipment do you have access to?</Label>
           <Select
             value={quizData.equipment}
             onValueChange={(value) => handleChange("equipment", value)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full focus:ring-teal-500">
               <SelectValue placeholder="Select equipment access" />
             </SelectTrigger>
             <SelectContent>
@@ -140,23 +140,23 @@ export function Quiz() {
         
         {/* question 5 */}
         <div className="space-y-2">
-          <Label className="text-lg">Do you have any physical limitations or injuries?</Label>
+          <Label className="text-lg font-medium">Do you have any physical limitations or injuries?</Label>
           <Textarea
             placeholder="Describe any injuries or limitations. Write 'None' if not applicable."
             value={quizData.limitations}
             onChange={(e) => handleChange("limitations", e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[100px] focus:ring-teal-500"
           />
         </div>
 
         {/* question 6 */}
         <div className="space-y-2">
-          <Label className="text-lg">What type of workouts do you prefer?</Label>
+          <Label className="text-lg font-medium">What type of workouts do you prefer?</Label>
           <Select
             value={quizData.workoutPreference}
             onValueChange={(value) => handleChange("workoutPreference", value)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full focus:ring-teal-500">
               <SelectValue placeholder="Select workout style" />
             </SelectTrigger>
             <SelectContent>
@@ -171,7 +171,7 @@ export function Quiz() {
 
         {/* question 7 */}
         <div className="space-y-2">
-          <Label className="text-lg">
+          <Label className="text-lg font-medium">
             What are your current body stats?
           </Label>
           <div className="grid grid-cols-2 gap-4 mt-2">
@@ -186,7 +186,7 @@ export function Quiz() {
                     max="8"
                     value={quizData.heightFeet}
                     onChange={(e) => handleChange("heightFeet", e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="5"
                   />
                 </div>
@@ -198,7 +198,7 @@ export function Quiz() {
                     max="11"
                     value={quizData.heightInches}
                     onChange={(e) => handleChange("heightInches", e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="10"
                   />
                 </div>
@@ -213,7 +213,7 @@ export function Quiz() {
                 max="500"
                 value={quizData.weight}
                 onChange={(e) => handleChange("weight", e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="150"
               />
             </div>
@@ -226,7 +226,7 @@ export function Quiz() {
                 max="100"
                 value={quizData.age}
                 onChange={(e) => handleChange("age", e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="23"
               />
             </div>
@@ -236,7 +236,7 @@ export function Quiz() {
         {/* submit button */}
         <div className="pt-6">
           <Button 
-            className="w-full" 
+            className="w-full bg-teal-500 hover:bg-teal-600 text-white" 
             size="lg"
             onClick={handleSubmit}
           >

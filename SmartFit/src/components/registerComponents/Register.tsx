@@ -91,7 +91,7 @@ export function RegisterForm({
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-8">
               {message && (
-                <div className={`${message.includes("success") ? "bg-green-100 text-green-700" : "bg-destructive/15 text-destructive"} text-base p-4 rounded-md`}>
+                <div className={`${message.includes("success") ? "bg-teal-100 text-teal-700" : "bg-destructive/15 text-destructive"} text-base p-4 rounded-md`}>
                   {message}
                 </div>
               )}
@@ -141,7 +141,7 @@ export function RegisterForm({
               
               <Button 
                 type="submit" 
-                className="w-full h-14 text-lg font-medium mt-2"
+                className="w-full h-14 text-lg font-medium mt-2 bg-teal-500 hover:bg-teal-600"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Register"}
@@ -150,7 +150,7 @@ export function RegisterForm({
             
             <div className="mt-8 text-center text-lg">
               Already have an account?{" "}
-              <Link to="/login" className="text-primary underline underline-offset-4 hover:text-primary/90 font-semibold">
+              <Link to="/login" className="text-teal-500 underline underline-offset-4 hover:text-teal-600 font-semibold">
                 Log in
               </Link>
             </div>

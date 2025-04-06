@@ -1,12 +1,16 @@
 import { RegisterForm } from "@/components/registerComponents/Register";
+import Layout from "@/components/layoutComponent/Layout";
+
 
 function Register() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
+    <Layout>
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white flex items-center justify-center p-6">
       <div className="w-full max-w-2xl">
         <RegisterForm />
       </div>
     </div>
+    </Layout>
   );
 }
 
