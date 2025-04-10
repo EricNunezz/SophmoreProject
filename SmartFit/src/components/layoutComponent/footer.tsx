@@ -10,7 +10,12 @@ export function Footer() {
           <Link to="/Login" className="text-teal-500 hover:text-teal-700 hover:underline">Login</Link>
           <Link to="/quizPage" className="text-teal-500 hover:text-teal-700 hover:underline">Quiz</Link>
           <Link to="/geminiPage" className="text-teal-500 hover:text-teal-700 hover:underline">Gemini</Link>
+
         </div>
+        <div className="mt-12 text-center text-gray-600">
+          <p>© 2025 SmartFit. All rights reserved.</p>
+        </div>
+
       </div>
     </footer>
   );

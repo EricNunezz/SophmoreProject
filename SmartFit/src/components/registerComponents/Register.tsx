@@ -20,22 +20,68 @@ export function RegisterForm({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  //i am declaring an arrow function that takes no parameters 
+  const validatePasswords = () => {
+    console.log("Validating passwords:", {password, confirmPassword});
+    
+    // Trim whitespace from both values before comparing
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+    
+    if(trimmedPassword !== trimmedConfirmPassword){ //if statement checking if password is not equal to confirmPassword
+      console.log("Passwords do not match");
+      setPasswordError("Passwords do not match");
+      return false;
+    }
+
+    if(trimmedPassword.length < 6){
+      console.log("Password too short");
+      setPasswordError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    setPasswordError("");
+    return true;
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessage("")
+
+    if(!validatePasswords()){//
+      return;
+    }
+
+    // Trim whitespace for validation
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+    
+    if(trimmedPassword !== trimmedConfirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    
+    if(trimmedPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters long");
+      return;
+    }
+    
+    setPasswordError("");
     setIsLoading(true)
 
     try {
       //register user with supabase
       const { data, error } = await supabase.auth.signUp({
         email: email,
-        password: password,
+        password: trimmedPassword,
         options: {
           data: {
-            name: name,
+            full_name: name,
           }
         }
       });
@@ -47,30 +93,16 @@ export function RegisterForm({
 
       if (data && data.user) {  //checks if data exists and has a user Object
         setMessage("Account created successfully!");
-        //after the user is created insert additional data into custom users table
-        const {error: profileError} = await supabase
-        .from("users")//my custom table
-        .insert([
-          {
-            user_id: data.user.id,
-            name: name, 
-            email: data.user.email,
-          }
-        ]);
-
-        if(profileError){
-          setMessage("Error saving user profile: " + profileError.message);
-          return;
-        }
-        setMessage("Account and profile created successfully!");
+        
+        //clear fields after successful registration
+        setName("")
+        setEmail("")
+        setPassword("")
+        setConfirmPassword("")
       } else{
           setMessage("Error: User Data Not Found");
       }
 
-      //clear fields after successful registration
-      setName("")
-      setEmail("")
-      setPassword("")
     } catch (error) {
       setMessage("An unexpected error occurred")
     } finally {
@@ -130,7 +162,23 @@ export function RegisterForm({
                   id="password" 
                   type="password" 
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    setPassword(newValue);
+                    if(confirmPassword) {
+                      // Compare trimmed values
+                      const trimmedNewValue = newValue.trim();
+                      const trimmedConfirmPassword = confirmPassword.trim();
+                      
+                      if(trimmedNewValue !== trimmedConfirmPassword) {
+                        setPasswordError("Passwords do not match");
+                      } else if(trimmedNewValue.length < 6) {
+                        setPasswordError("Password must be at least 6 characters long");
+                      } else {
+                        setPasswordError("");
+                      }
+                    }
+                  }}
                   required 
                   className="h-14 text-lg px-4"
                 />
@@ -138,11 +186,46 @@ export function RegisterForm({
                   Password must be at least 6 characters long
                 </p>
               </div>
+
+              <div className = "grid gap-4">
+                <div className = "flex items-center">
+                  <Label htmlFor="confirmPassword" className="text-lg font-medium">Confirm Password</Label>
+                </div>
+                <Input
+                  id = "confirmPassword"
+                  type = "password"
+                  value={confirmPassword}
+                  onChange = {(e) => {
+                    const newValue = e.target.value;
+                    setConfirmPassword(newValue);
+                    if(password) {
+                      // Compare trimmed values
+                      const trimmedPassword = password.trim();
+                      const trimmedNewValue = newValue.trim();
+                      
+                      if(trimmedPassword !== trimmedNewValue) {
+                        setPasswordError("Passwords do not match");
+                      } else if(trimmedPassword.length < 6) {
+                        setPasswordError("Password must be at least 6 characters long");
+                      } else {
+                        setPasswordError("");
+                      }
+                    }
+                  }}
+                  required
+                  className={`h-14 text-lg px-4 ${passwordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                />
+                {passwordError && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {passwordError}
+                  </p>
+                )}
+              </div>
               
               <Button 
                 type="submit" 
                 className="w-full h-14 text-lg font-medium mt-2 bg-teal-500 hover:bg-teal-600"
-                disabled={isLoading}
+                disabled={isLoading || Boolean(passwordError)}
               >
                 {isLoading ? "Creating account..." : "Register"}
               </Button>
