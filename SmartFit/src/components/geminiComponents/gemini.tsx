@@ -8,7 +8,7 @@ import {
   getUserFitnessProfile
 } from "@/lib/database";
 import { useNavigate } from "react-router-dom";
-import { User } from "@supabase/supabase-js";
+import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
 interface QuizData {
@@ -31,21 +31,116 @@ interface QuizData {
   };
 }
 
+interface DayMatch {
+  day: string;
+  title: string;
+  index: number;
+}
+
+interface Exercise {
+  name: string;
+  description: string;
+  sets: number;
+  reps: number;
+}
+
+const parseExercisesFromText = (dayContent: string): Exercise[] => {
+  const exercises: Exercise[] = [];
+  
+  const lines = dayContent.split('\n');
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (!line || line.toLowerCase().startsWith('day ')) continue;
+    
+    const exerciseMatch = line.match(/^([^:]+)(?::|-)?\s*(\d+)?\s*(?:sets|set)?\s*(?:x|×)?\s*(\d+)?\s*(?:reps|rep)?/i);
+    
+    if (exerciseMatch) {
+      const name = exerciseMatch[1]?.trim();
+      let sets = exerciseMatch[2] ? parseInt(exerciseMatch[2]) : 3;
+      let reps = exerciseMatch[3] ? parseInt(exerciseMatch[3]) : 10;
+      
+      if (isNaN(sets)) sets = 3;
+      if (isNaN(reps)) reps = 10;
+      
+      let description = "";
+      if (i + 1 < lines.length && !lines[i + 1].match(/^\d+\s*(?:sets|set)/i)) {
+        description = lines[i + 1].trim();
+        i++; 
+      }
+      
+      exercises.push({
+        name,
+        description,
+        sets,
+        reps
+      });
+    }
+  }
+  
+  return exercises;
+};
+
+const parseMultiDayWorkout = (content: string): { dayNumber: number, name: string, exercises: Exercise[] }[] => {
+  const dayRegex = /day\s*(\d+)[:\s-]+([^\n]+)/gi;
+  const workoutSplits: { dayNumber: number, name: string, exercises: Exercise[] }[] = [];
+  const dayMatches: { day: string, title: string, index: number }[] = [];
+  
+  let match: RegExpExecArray | null;
+  while ((match = dayRegex.exec(content)) !== null) {
+    dayMatches.push({
+      day: match[1],
+      title: match[2].trim(),
+      index: match.index
+    });
+  }
+  
+  for (let i = 0; i < dayMatches.length; i++) {
+    const currentDay = dayMatches[i];
+    const nextDayIndex = i < dayMatches.length - 1 ? dayMatches[i + 1].index : content.length;
+    const dayContent = content.substring(currentDay.index, nextDayIndex);
+    
+    const exercises = parseExercisesFromText(dayContent);
+    
+    workoutSplits.push({
+      dayNumber: parseInt(currentDay.day),
+      name: currentDay.title,
+      exercises: exercises
+    });
+  }
+  
+  if (workoutSplits.length === 0) {
+    workoutSplits.push({
+      dayNumber: 1,
+      name: "Full Body Workout",
+      exercises: []
+    });
+  }
+  
+  return workoutSplits;
+};
+
 export function GeminiCard() {
+  const [message, setMessage] = useState("");
+  const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [fitnessProfileId, setFitnessProfileId] = useState<string | null>(null);
-  const [response, setResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [savedProgramId, setSavedProgramId] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
+  };
 
   useEffect(() => {
     const checkUserAndLoadProfile = async () => {
       setIsLoadingProfile(true);
       
-      // Check and get current user
       const currentUser = await getCurrentUser();
       if (!currentUser) {
         navigate("/login");
@@ -53,7 +148,6 @@ export function GeminiCard() {
       }
       setUser(currentUser);
       
-      // Load fitness profile from database
       try {
         const fitnessProfile = await getUserFitnessProfile(currentUser.id);
         
@@ -61,7 +155,6 @@ export function GeminiCard() {
           console.log("Loaded fitness profile from database:", fitnessProfile);
           setFitnessProfileId(fitnessProfile.id);
           
-          // Convert database quiz_data to the format expected by the component
           const formattedQuizData: QuizData = {
             userProfile: fitnessProfile.quiz_data
           };
@@ -69,27 +162,11 @@ export function GeminiCard() {
           setQuizData(formattedQuizData);
         } else {
           console.log("No fitness profile found in database");
-          
-          // Fallback to localStorage if no profile in database
-          const storedData = localStorage.getItem("quizData");
-          const storedProfileId = localStorage.getItem("fitnessProfileId");
-          
-          if (storedData) {
-            try {
-              const parsedData = JSON.parse(storedData);
-              setQuizData(parsedData);
-              console.log("Loaded quiz data from localStorage as fallback:", parsedData);
-            } catch (error) {
-              console.error("Error parsing stored quiz data:", error);
-            }
-          }
-          
-          if (storedProfileId) {
-            setFitnessProfileId(storedProfileId);
-          }
+          setQuizData(null);
         }
       } catch (error) {
         console.error("Error loading fitness profile from database:", error);
+        setQuizData(null);
       } finally {
         setIsLoadingProfile(false);
       }
@@ -98,11 +175,12 @@ export function GeminiCard() {
     checkUserAndLoadProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         if (event === "SIGNED_OUT") {
           navigate("/login");
         } else if (session?.user) {
           setUser(session.user);
+          checkUserAndLoadProfile();
         }
       }
     );
@@ -150,34 +228,42 @@ export function GeminiCard() {
       Their body stats are: height ${quizData.userProfile.bodyStats.height}, weight ${quizData.userProfile.bodyStats.weight}, age ${quizData.userProfile.bodyStats.age}, gender ${quizData.userProfile.bodyStats.gender || "not specified"}. 
       ${quizData.userProfile.limitations && quizData.userProfile.limitations !== 'None' ? 'They have the following limitations: ' + quizData.userProfile.limitations : ''}
       
-      For now, create a single workout day that includes a full-body routine.
+      Please create a ${quizData.userProfile.workoutSchedule.daysPerWeek}-day workout routine with different focus areas. Format it as:
       
-      Please provide:
-      1. A clear title for the workout day (e.g., "Day 1: Full Body Workout")
-      2. Specific exercises with sets and reps recommendations
-      3. Any modifications based on their equipment and limitations
-      4. General fitness advice tailored to their goals
+      Day 1: [Workout Type] (e.g., Strength, Cardio, HIIT, etc.)
+      [Exercise 1] - [Sets] sets x [Reps] reps
+      [Brief description of Exercise 1]
       
-      Format the response with a clear title for the workout day on its own line at the beginning.`;
+      [Exercise 2] - [Sets] sets x [Reps] reps
+      [Brief description of Exercise 2]
+      
+      And so on for each exercise, then for Day 2, 3, etc.
+      
+      For each day, include:
+      1. A clear title for the workout day (e.g., Day 1: Upper Body Strength)
+      2. 4-6 specific exercises with sets and reps recommendations
+      3. Brief description for each exercise
+      
+      Make the workout progressive and balanced across the week.`;
 
       // Handle Gemini API request with retry
-      let result;
-      let attempts = 0;
-      const maxAttempts = 3;
+      let result = "";
+      let retryCount = 0;
+      const maxRetries = 3;
       
-      while (attempts < maxAttempts) {
+      while (retryCount < maxRetries) {
         try {
           result = await getGeminiResponse(prompt);
           if (result && !result.startsWith("Error:")) {
             break;
           }
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between retries
-          attempts++;
+          await new Promise(resolve => setTimeout(resolve, 2000)); 
+          retryCount++;
         } catch (error) {
-          console.error(`Attempt ${attempts + 1} failed:`, error);
-          if (attempts >= maxAttempts - 1) throw error;
+          console.error(`Attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          if (retryCount >= maxRetries) throw error;
           await new Promise(resolve => setTimeout(resolve, 2000));
-          attempts++;
         }
       }
       
@@ -189,8 +275,7 @@ export function GeminiCard() {
       setResponse(result);
 
       try {
-        // Process and save the workout data
-        const workoutSplit = parseWorkoutSplit(result);
+        const workoutSplits = parseMultiDayWorkout(result);
         
         const workoutProgram = {
           user_id: user.id,
@@ -206,24 +291,58 @@ export function GeminiCard() {
         if (savedProgram?.id) {
           setSavedProgramId(savedProgram.id);
           
-          const splitToSave = {
-            program_id: savedProgram.id,
-            name: workoutSplit.name,
-            day_number: workoutSplit.dayNumber,
-            exercises: workoutSplit.exercises
-          };
+          for (const split of workoutSplits) {
+            const splitToSave = {
+              program_id: savedProgram.id,
+              name: split.name,
+              day_number: split.dayNumber,
+              exercises: split.exercises
+            };
+            
+            console.log("Saving workout split:", splitToSave);
+            await saveWorkoutSplit(splitToSave);
+          }
           
-          console.log("Saving workout split:", splitToSave);
-          const savedSplit = await saveWorkoutSplit(splitToSave);
-          console.log("Saved workout split:", savedSplit);
+          setTimeout(() => {
+            const viewProgramEl = document.createElement("div");
+            viewProgramEl.className = "mt-6 text-center";
+            viewProgramEl.innerHTML = `
+              <p class="mb-4 text-teal-600 dark:text-teal-400">Your workout program has been saved!</p>
+              <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button class="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-md">
+                  View Your Program
+                </button>
+                <button class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white rounded-md">
+                  Return to Dashboard
+                </button>
+              </div>
+            `;
+            
+            const viewProgramButton = viewProgramEl.querySelector("button:first-child") as HTMLButtonElement;
+            if (viewProgramButton) {
+              viewProgramButton.onclick = () => {
+                navigate(`/program/${savedProgram.id}`);
+              };
+            }
+            
+            const dashboardButton = viewProgramEl.querySelector("button:last-child") as HTMLButtonElement;
+            if (dashboardButton) {
+              dashboardButton.onclick = () => {
+                navigate("/dashboard");
+              };
+            }
+            
+            const responseDiv = document.querySelector(".whitespace-pre-wrap");
+            if (responseDiv && responseDiv.parentElement) {
+              responseDiv.parentElement.appendChild(viewProgramEl);
+            }
+          }, 500);
         } else {
           console.error("Workout program saved but ID not returned");
-          // The workout plan is still displayed but not saved to database
         }
       } catch (dbError) {
         console.error("Database error saving workout data:", dbError);
-        // Show a message that the plan was generated but not saved
-        setResponse(result + "\n\n⚠️ Note: Your workout plan was generated but couldn't be saved to your account due to a technical issue.");
+        setResponse(result + "\n\n Note: Your workout plan was generated but couldn't be saved to your account due to a technical issue.");
       }
     } catch (error) {
       console.error("Error generating workout plan:", error);
@@ -234,23 +353,33 @@ export function GeminiCard() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Your Personalized Workout Plan</h1>
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Workout Generator</h2>
+        <button 
+          onClick={handleBackToDashboard}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white rounded-md"
+        >
+          Return to Dashboard
+        </button>
+      </div>
       
-      {isLoadingProfile ? (
-        <p className="text-gray-600 dark:text-gray-400 mb-4">Loading your fitness profile...</p>
-      ) : quizData ? (
-        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h2 className="text-lg font-semibold mb-2 dark:text-white">Your Fitness Profile:</h2>
-          <p className="dark:text-gray-300"><strong className="dark:text-white">Fitness Level:</strong> {quizData.userProfile.fitnessLevel}</p>
-          <p className="dark:text-gray-300"><strong className="dark:text-white">Goals:</strong> {quizData.userProfile.fitnessGoals}</p>
-          <p className="dark:text-gray-300"><strong className="dark:text-white">Schedule:</strong> {quizData.userProfile.workoutSchedule.daysPerWeek} days per week, {quizData.userProfile.workoutSchedule.sessionLength}</p>
-          <p className="dark:text-gray-300"><strong className="dark:text-white">Equipment:</strong> {quizData.userProfile.equipment}</p>
-          <p className="dark:text-gray-300"><strong className="dark:text-white">Body Stats:</strong> {quizData.userProfile.bodyStats.height}, {quizData.userProfile.bodyStats.weight}, Age: {quizData.userProfile.bodyStats.age}{quizData.userProfile.bodyStats.gender ? `, Gender: ${quizData.userProfile.bodyStats.gender}` : ''}</p>
-        </div>
-      ) : (
-        <p className="text-yellow-600 dark:text-yellow-500 mb-4">No fitness profile found. Please complete the fitness assessment quiz first.</p>
-      )}
+      <div className="mb-4">
+        {isLoadingProfile ? (
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Loading your fitness profile...</p>
+        ) : quizData ? (
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h2 className="text-lg font-semibold mb-2 dark:text-white">Your Fitness Profile:</h2>
+            <p className="dark:text-gray-300"><strong className="dark:text-white">Fitness Level:</strong> {quizData.userProfile.fitnessLevel}</p>
+            <p className="dark:text-gray-300"><strong className="dark:text-white">Goals:</strong> {quizData.userProfile.fitnessGoals}</p>
+            <p className="dark:text-gray-300"><strong className="dark:text-white">Schedule:</strong> {quizData.userProfile.workoutSchedule.daysPerWeek} days per week, {quizData.userProfile.workoutSchedule.sessionLength}</p>
+            <p className="dark:text-gray-300"><strong className="dark:text-white">Equipment:</strong> {quizData.userProfile.equipment}</p>
+            <p className="dark:text-gray-300"><strong className="dark:text-white">Body Stats:</strong> {quizData.userProfile.bodyStats.height}, {quizData.userProfile.bodyStats.weight}, Age: {quizData.userProfile.bodyStats.age}{quizData.userProfile.bodyStats.gender ? `, Gender: ${quizData.userProfile.bodyStats.gender}` : ''}</p>
+          </div>
+        ) : (
+          <p className="text-yellow-600 dark:text-yellow-500 mb-4">No fitness profile found. Please complete the fitness assessment quiz first.</p>
+        )}
+      </div>
 
       <Button 
         size="lg" 

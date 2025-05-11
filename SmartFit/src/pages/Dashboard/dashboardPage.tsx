@@ -27,9 +27,11 @@ function Dashboard() {
         
         setUser(currentUser);
         
+        // Get user's fitness profile
         const profile = await getUserFitnessProfile(currentUser.id);
         setFitnessProfile(profile);
         
+        // Get user's workout program
         const program = await getUserWorkoutProgram(currentUser.id);
         setWorkoutProgram(program);
       } catch (error) {
@@ -42,7 +44,7 @@ function Dashboard() {
     checkAuth();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event) => {
         if (event === "SIGNED_OUT") {
           navigate("/login");
         }
@@ -54,98 +56,135 @@ function Dashboard() {
     };
   }, [navigate]);
 
-  const handleNewWorkout = () => {
+  const handleTakeFitnessQuiz = () => {
     navigate("/quizPage");
   };
 
   const viewWorkoutProgram = () => {
+    if (workoutProgram && workoutProgram.id) {
+      navigate(`/program/${workoutProgram.id}`);
+    } else {
+      navigate("/geminiPage");
+    }
+  };
+
+  const generateNewWorkout = () => {
     navigate("/geminiPage");
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto p-6">
+          <div className="text-center py-12">Loading your fitness information...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Your Fitness Dashboard</h1>
-          <Button 
-            className="bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
-            onClick={handleNewWorkout}
-          >
-            {fitnessProfile ? "Update Fitness Profile" : "Create Fitness Profile"}
-          </Button>
+          
+          {!fitnessProfile && (
+            <Button 
+              className="bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
+              onClick={handleTakeFitnessQuiz}
+            >
+              Take Fitness Quiz
+            </Button>
+          )}
         </div>
 
-        {loading ? (
-          <div className="text-center p-8">Loading your fitness information...</div>
-        ) : (
-          <div>
-            {workoutProgram ? (
-              <div className="grid grid-cols-1 gap-6">
-                <Card className="overflow-hidden border-teal-100 dark:border-teal-900 dark:bg-gray-800">
-                  <CardHeader className="bg-teal-50 dark:bg-gray-700 pb-3">
-                    <CardTitle className="text-xl dark:text-white">{workoutProgram.title}</CardTitle>
-                    <CardDescription className="dark:text-gray-300">
-                      Created: {new Date(workoutProgram.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <p className="text-gray-700 dark:text-gray-300 mb-4">
-                      {workoutProgram.description}
-                    </p>
+        <div className="grid gap-6">
+          {/* Workout Program Card */}
+          {workoutProgram ? (
+            <Card className="w-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold">Your Workout Program</CardTitle>
+                <CardDescription>
+                  Created: {new Date(workoutProgram.created_at).toLocaleDateString()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-6">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {workoutProgram.description || "Your personalized workout program based on your fitness profile."}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Button 
-                      variant="outline" 
-                      className="w-full border-teal-500 text-teal-500 hover:bg-teal-50 dark:border-teal-400 dark:text-teal-400 dark:hover:bg-gray-700"
+                      className="h-12 font-medium bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
                       onClick={viewWorkoutProgram}
                     >
-                      View Workout
+                      View Workout Program
                     </Button>
-                  </CardContent>
-                </Card>
+                    <Button 
+                      className="h-12 font-medium bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                      onClick={generateNewWorkout}
+                    >
+                      Generate New Workout
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Get Started with a Workout Program</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-6">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {fitnessProfile 
+                      ? "Generate your personalized workout program based on your fitness profile." 
+                      : "Take the fitness assessment quiz to create your personalized workout plan."}
+                  </p>
+                  <Button 
+                    className="w-full h-12 font-medium bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
+                    onClick={fitnessProfile ? generateNewWorkout : handleTakeFitnessQuiz}
+                  >
+                    {fitnessProfile ? "Generate Workout Program" : "Take Fitness Quiz"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-                {fitnessProfile && (
-                  <Card className="overflow-hidden border-teal-100 dark:border-teal-900 dark:bg-gray-800">
-                    <CardHeader className="bg-teal-50 dark:bg-gray-700 pb-3">
-                      <CardTitle className="text-xl dark:text-white">Your Fitness Profile</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Fitness Level:</strong> {fitnessProfile.quiz_data.fitnessLevel}</p>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Goals:</strong> {fitnessProfile.quiz_data.fitnessGoals}</p>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Equipment:</strong> {fitnessProfile.quiz_data.equipment}</p>
-                        </div>
-                        <div>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Days per Week:</strong> {fitnessProfile.quiz_data.workoutSchedule.daysPerWeek}</p>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Session Length:</strong> {fitnessProfile.quiz_data.workoutSchedule.sessionLength}</p>
-                          <p className="dark:text-gray-300"><strong className="dark:text-white">Workout Style:</strong> {fitnessProfile.quiz_data.workoutPreference}</p>
-                        </div>
-                      </div>
-                      <Button 
-                        className="w-full mt-4 bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
-                        onClick={handleNewWorkout}
-                      >
-                        Update Profile
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            ) : (
-              <div className="text-center p-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h2 className="text-xl font-medium mb-2 dark:text-white">No Workout Program Yet</h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Complete the fitness assessment quiz to get your personalized workout plan.
-                </p>
-                <Button 
-                  className="bg-teal-500 hover:bg-teal-600 text-white dark:bg-teal-600 dark:hover:bg-teal-700"
-                  onClick={handleNewWorkout}
-                >
-                  Take Fitness Quiz
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+          {/* Fitness Profile Card */}
+          {fitnessProfile && (
+            <Card className="w-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold">Your Fitness Profile</CardTitle>
+                <CardDescription>Personal fitness information and preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p><strong>Fitness Level:</strong> {fitnessProfile.quiz_data.fitnessLevel}</p>
+                    <p><strong>Goals:</strong> {fitnessProfile.quiz_data.fitnessGoals}</p>
+                    <p><strong>Equipment:</strong> {fitnessProfile.quiz_data.equipment}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p><strong>Days per Week:</strong> {fitnessProfile.quiz_data.workoutSchedule.daysPerWeek}</p>
+                    <p><strong>Session Length:</strong> {fitnessProfile.quiz_data.workoutSchedule.sessionLength}</p>
+                    <p><strong>Workout Style:</strong> {fitnessProfile.quiz_data.workoutPreference}</p>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full h-12 font-medium bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                    onClick={handleTakeFitnessQuiz}
+                  >
+                    Update Fitness Profile
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </Layout>
   );

@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "@/pages/Home/homePage";
 import Dashboard from "@/pages/Dashboard/dashboardPage";
@@ -6,6 +5,8 @@ import Login from "@/pages/Login/loginPage";
 import Register from "@/pages/Register/registerPage";
 import QuizPage from "@/pages/Quiz/quizPage";
 import GeminiPage from "@/pages/Gemini/geminiPage";
+import ProgramPage from "@/pages/WorkoutProgram/ProgramPage";
+import WorkoutPage from "@/pages/Workout/workoutPage";
 
 
 function App() {
@@ -32,7 +33,12 @@ function App() {
           {/*Gemini*/}
          <Route path = "/geminiPage" element = {<GeminiPage/>}/>
          
-
+         {/*Program*/}
+         <Route path = "/program" element = {<ProgramPage/>}/>
+         <Route path = "/program/:programId" element = {<ProgramPage/>}/>
+         
+         {/*Workout*/}
+         <Route path = "/workout/:workoutId" element = {<WorkoutPage/>}/>
          
       </Routes>
     </Router>

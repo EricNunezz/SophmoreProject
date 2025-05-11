@@ -89,7 +89,6 @@ export function Quiz() {
       return;
     }
 
-    // Validate required fields
     const requiredFields = {
       fitnessLevel: "Fitness level",
       fitnessGoals: "Fitness goals",
@@ -120,10 +119,7 @@ export function Quiz() {
       const savedProfile = await saveFitnessProfile(fitnessProfile);
       console.log("Saved fitness profile:", savedProfile);
       
-      localStorage.setItem("quizData", JSON.stringify({ userProfile: formattedData }));
-      
       if (savedProfile && savedProfile.id) {
-        localStorage.setItem("fitnessProfileId", savedProfile.id);
         navigate("/geminiPage");
       } else {
         throw new Error("Failed to get profile ID from the server");

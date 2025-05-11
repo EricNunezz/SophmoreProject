@@ -25,15 +25,13 @@ export function RegisterForm({
   const [message, setMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  //i am declaring an arrow function that takes no parameters 
   const validatePasswords = () => {
     console.log("Validating passwords:", {password, confirmPassword});
     
-    // Trim whitespace from both values before comparing
     const trimmedPassword = password.trim();
     const trimmedConfirmPassword = confirmPassword.trim();
     
-    if(trimmedPassword !== trimmedConfirmPassword){ //if statement checking if password is not equal to confirmPassword
+    if(trimmedPassword !== trimmedConfirmPassword){ 
       console.log("Passwords do not match");
       setPasswordError("Passwords do not match");
       return false;
@@ -53,11 +51,10 @@ export function RegisterForm({
     event.preventDefault();
     setMessage("")
 
-    if(!validatePasswords()){//
+    if(!validatePasswords()){
       return;
     }
 
-    // Trim whitespace for validation
     const trimmedPassword = password.trim();
     const trimmedConfirmPassword = confirmPassword.trim();
     
@@ -75,7 +72,6 @@ export function RegisterForm({
     setIsLoading(true)
 
     try {
-      //register user with supabase
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: trimmedPassword,
@@ -91,10 +87,9 @@ export function RegisterForm({
         return;
       }
 
-      if (data && data.user) {  //checks if data exists and has a user Object
+      if (data && data.user) {  
         setMessage("Account created successfully!");
         
-        //clear fields after successful registration
         setName("")
         setEmail("")
         setPassword("")

@@ -43,32 +43,17 @@ export interface WorkoutSplit {
 
 export async function saveFitnessProfile(fitnessProfile: Omit<FitnessProfile, 'id' | 'created_at'>) {
   try {
-    // First check if the user is authenticated
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !userData.user) {
-      throw new Error("User is not authenticated. Please log in again.");
-    }
-
-    // Ensure the user_id in the profile matches the authenticated user
-    if (fitnessProfile.user_id !== userData.user.id) {
-      fitnessProfile.user_id = userData.user.id;
-    }
-
-    // Check for existing profile
     const { data: existingProfiles, error: fetchError } = await supabase
       .from('fitness_profile')
       .select('id')
       .eq('user_id', fitnessProfile.user_id)
-      .single();
+      .maybeSingle();
 
-    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error("Error fetching existing profiles:", fetchError);
+    if (fetchError) {
       throw fetchError;
     }
 
     if (existingProfiles) {
-      // Update existing profile
       const { data, error } = await supabase
         .from('fitness_profile')
         .update({ quiz_data: fitnessProfile.quiz_data })
@@ -76,20 +61,17 @@ export async function saveFitnessProfile(fitnessProfile: Omit<FitnessProfile, 'i
         .select();
 
       if (error) {
-        console.error("Error updating fitness profile:", error);
         throw error;
       }
 
       return data?.[0];
     } else {
-      // Insert new profile
       const { data, error } = await supabase
         .from('fitness_profile')
         .insert(fitnessProfile)
         .select();
 
       if (error) {
-        console.error("Error inserting fitness profile:", error);
         throw error;
       }
 
@@ -103,32 +85,17 @@ export async function saveFitnessProfile(fitnessProfile: Omit<FitnessProfile, 'i
 
 export async function saveWorkoutProgram(program: Omit<WorkoutProgram, 'id' | 'created_at'>) {
   try {
-    // First check if the user is authenticated
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !userData.user) {
-      throw new Error("User is not authenticated. Please log in again.");
-    }
-
-    // Ensure the user_id in the program matches the authenticated user
-    if (program.user_id !== userData.user.id) {
-      program.user_id = userData.user.id;
-    }
-
-    // Check for existing program
     const { data: existingProgram, error: fetchError } = await supabase
       .from('workout_program')
       .select('id')
       .eq('user_id', program.user_id)
-      .single();
+      .maybeSingle();
 
-    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error("Error fetching existing program:", fetchError);
+    if (fetchError) {
       throw fetchError;
     }
 
     if (existingProgram) {
-      // Update existing program
       const { data, error } = await supabase
         .from('workout_program')
         .update({
@@ -140,20 +107,17 @@ export async function saveWorkoutProgram(program: Omit<WorkoutProgram, 'id' | 'c
         .select();
 
       if (error) {
-        console.error("Error updating workout program:", error);
         throw error;
       }
 
       return data?.[0];
     } else {
-      // Insert new program
       const { data, error } = await supabase
         .from('workout_program')
         .insert(program)
         .select();
 
       if (error) {
-        console.error("Error inserting workout program:", error);
         throw error;
       }
 
@@ -167,65 +131,44 @@ export async function saveWorkoutProgram(program: Omit<WorkoutProgram, 'id' | 'c
 
 export async function saveWorkoutSplit(split: Omit<WorkoutSplit, 'id' | 'created_at'>) {
   try {
-    // First check if the user is authenticated
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !userData.user) {
-      throw new Error("User is not authenticated. Please log in again.");
-    }
-
-    // Verify that the program_id belongs to a program owned by this user
-    const { data: programData, error: programError } = await supabase
-      .from('workout_program')
-      .select('user_id')
-      .eq('id', split.program_id)
-      .single();
-
-    if (programError) {
-      console.error("Error verifying program ownership:", programError);
-      throw new Error("Couldn't verify program ownership");
-    }
-
-    if (programData.user_id !== userData.user.id) {
-      throw new Error("You don't have permission to modify this workout program");
-    }
-
-    // Check for existing splits
-    const { data: existingSplits, error: fetchError } = await supabase
+    const { data: existingSplit, error: fetchError } = await supabase
       .from('workout_splits')
-      .select('*')
-      .eq('program_id', split.program_id);
+      .select('id')
+      .eq('program_id', split.program_id)
+      .eq('day_number', split.day_number)
+      .maybeSingle();
 
     if (fetchError) {
-      console.error("Error fetching existing splits:", fetchError);
       throw fetchError;
     }
 
-    if (existingSplits && existingSplits.length > 0) {
-      // Delete existing splits for this program
-      const { error } = await supabase
+    if (existingSplit) {
+      const { data, error } = await supabase
         .from('workout_splits')
-        .delete()
-        .eq('program_id', split.program_id);
+        .update({
+          name: split.name,
+          exercises: split.exercises
+        })
+        .eq('id', existingSplit.id)
+        .select();
 
       if (error) {
-        console.error("Error deleting existing splits:", error);
         throw error;
       }
+
+      return data?.[0];
+    } else {
+      const { data, error } = await supabase
+        .from('workout_splits')
+        .insert(split)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.[0];
     }
-
-    // Insert new split
-    const { data, error } = await supabase
-      .from('workout_splits')
-      .insert(split)
-      .select();
-
-    if (error) {
-      console.error("Error inserting workout split:", error);
-      throw error;
-    }
-
-    return data?.[0];
   } catch (error) {
     console.error("Error saving workout split:", error);
     throw error;
@@ -253,16 +196,15 @@ export async function getUserFitnessProfile(userId: string) {
       .from('fitness_profile')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error("Error fetching fitness profile:", error);
+    if (error) {
       throw error;
     }
 
     return data;
   } catch (error) {
-    console.error("Error getting user's fitness profile:", error);
+    console.error("Error getting user fitness profile:", error);
     return null;
   }
 }
@@ -281,17 +223,17 @@ export async function getUserWorkoutProgram(userId: string) {
 
     return data;
   } catch (error) {
-    console.error("Error getting user's workout program:", error);
+    console.error("Error getting user workout program:", error);
     return null;
   }
 }
 
-export async function getWorkoutSplit(programId: string) {
+export async function getWorkoutSplit(splitId: string) {
   try {
     const { data, error } = await supabase
       .from('workout_splits')
       .select('*')
-      .eq('program_id', programId)
+      .eq('id', splitId)
       .maybeSingle();
 
     if (error) {
@@ -301,6 +243,25 @@ export async function getWorkoutSplit(programId: string) {
     return data;
   } catch (error) {
     console.error("Error getting workout split:", error);
+    return null;
+  }
+}
+
+export async function getWorkoutSplitsByProgramId(programId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('workout_splits')
+      .select('*')
+      .eq('program_id', programId)
+      .order('day_number', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error getting workout splits:", error);
     return null;
   }
 } 
