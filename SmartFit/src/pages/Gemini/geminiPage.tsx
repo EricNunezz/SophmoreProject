@@ -1,11 +1,13 @@
 import { GeminiCard } from "@/components/geminiComponents/gemini"; 
+import Layout from "@/components/layoutComponent/Layout";
 
 function GeminiPage() {
   return (
-    <div>
-      <h1>Welcome to the Gemini page</h1>
-      <GeminiCard /> 
-    </div>
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white dark:from-gray-800 dark:to-[#2E382E]">
+        <GeminiCard /> 
+      </div>
+    </Layout>
   );
 }
 
