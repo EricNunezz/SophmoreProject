@@ -16,17 +16,6 @@ const DAYS_OF_WEEK = [
   "Sunday"
 ];
 
-const WORKOUT_TYPE_ICONS: Record<string, string> = {
-  "Strength": "💪",
-  "Cardio": "",
-  "HIIT": "⏱️",
-  "Cycling": "🚲",
-  "Rest": "🏠",
-  "Running": "🏃",
-  "Swimming": "🏊",
-  "Yoga": "🧘"
-};
-
 function ProgramPage() {
   const { programId } = useParams<{ programId: string }>();
   const navigate = useNavigate();
@@ -111,7 +100,6 @@ function ProgramPage() {
             const dayNumber = index + 1;
             const workout = workoutSplits.find(split => split.day_number === dayNumber);
             const workoutType = workout ? getWorkoutTypeFromName(workout.name) : "Rest";
-            const icon = WORKOUT_TYPE_ICONS[workoutType] || "💪";
             
             return (
               <Card 
@@ -127,7 +115,6 @@ function ProgramPage() {
                   <CardTitle className="text-center font-bold">{day}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center p-2 pt-0">
-                  <div className="text-3xl mb-1">{icon}</div>
                   <div className="text-sm">{workout ? workoutType : "Rest"}</div>
                 </CardContent>
               </Card>

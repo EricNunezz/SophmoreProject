@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { getCurrentUser, getWorkoutSplit, getWorkoutSplitsByProgramId } from "@/lib/database";
 import { User } from "@supabase/supabase-js";
 
-// Simple Exercise interface
 interface Exercise {
   name: string;
   description: string;
@@ -42,7 +41,6 @@ function WorkoutPage() {
             setWorkout(workoutData);
             setProgramId(workoutData.program_id);
             
-            // Set exercises from the workout data
             if (workoutData.exercises && Array.isArray(workoutData.exercises)) {
               setExercises(workoutData.exercises);
             } else {
@@ -64,7 +62,6 @@ function WorkoutPage() {
     loadData();
   }, [navigate, workoutId]);
 
-  // Get the day of week name from the day number
   const getDayName = (dayNumber: number): string => {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     return days[(dayNumber - 1) % 7];
@@ -99,7 +96,7 @@ function WorkoutPage() {
             onClick={handleBackToProgramClick}
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
           >
-            ← Back to Program
+            Back to Program
           </Button>
         </div>
 
@@ -115,7 +112,7 @@ function WorkoutPage() {
             </Card>
 
             <div className="space-y-4">
-              {exercises.length > 0 ? (
+              {exercises.length  > 0 ? (
                 exercises.map((exercise, index) => (
                   <Card key={index} className="border-gray-200 dark:border-gray-700">
                     <CardContent className="p-4">

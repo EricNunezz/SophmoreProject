@@ -39,6 +39,7 @@ export interface WorkoutSplit {
   name: string;
   day_number: number;
   exercises: any[];
+  notes?: string;
 }
 
 export async function saveFitnessProfile(fitnessProfile: Omit<FitnessProfile, 'id' | 'created_at'>) {
@@ -147,7 +148,8 @@ export async function saveWorkoutSplit(split: Omit<WorkoutSplit, 'id' | 'created
         .from('workout_splits')
         .update({
           name: split.name,
-          exercises: split.exercises
+          exercises: split.exercises,
+          notes: split.notes
         })
         .eq('id', existingSplit.id)
         .select();

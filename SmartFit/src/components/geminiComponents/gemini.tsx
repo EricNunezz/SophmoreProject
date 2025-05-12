@@ -47,47 +47,63 @@ interface Exercise {
 const parseExercisesFromText = (dayContent: string): Exercise[] => {
   const exercises: Exercise[] = [];
   
-  const lines = dayContent.split('\n');
+  const lines = dayContent.split(/\n{1,2}/);
   
-  for (let i = 1; i < lines.length; i++) {
+  let currentExercise: Partial<Exercise> = {};
+  
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    if (!line || line.toLowerCase().startsWith('day ')) continue;
+    if (!line || line.match(/^Day \d+:/i)) continue;
     
-    const exerciseMatch = line.match(/^([^:]+)(?::|-)?\s*(\d+)?\s*(?:sets|set)?\s*(?:x|×)?\s*(\d+)?\s*(?:reps|rep)?/i);
+    if (line.match(/^(important notes|notes|tips|warm-up|cool-down):/i)) continue;
+    
+    const exerciseMatch = line.match(/^([^-]+)\s*-\s*(\d+)\s*sets?\s*x\s*(\d+(?:-\d+)?)\s*reps?/i);
     
     if (exerciseMatch) {
-      const name = exerciseMatch[1]?.trim();
-      let sets = exerciseMatch[2] ? parseInt(exerciseMatch[2]) : 3;
-      let reps = exerciseMatch[3] ? parseInt(exerciseMatch[3]) : 10;
-      
-      if (isNaN(sets)) sets = 3;
-      if (isNaN(reps)) reps = 10;
-      
-      let description = "";
-      if (i + 1 < lines.length && !lines[i + 1].match(/^\d+\s*(?:sets|set)/i)) {
-        description = lines[i + 1].trim();
-        i++; 
+      const exerciseName = exerciseMatch[1].trim().toLowerCase();
+      if (exerciseName.includes('note') || 
+          exerciseName.includes('tip') || 
+          exerciseName.includes('important') ||
+          exerciseName === 'warm-up' ||
+          exerciseName === 'cool-down') {
+        continue;
       }
       
-      exercises.push({
-        name,
-        description,
-        sets,
-        reps
-      });
+      if (currentExercise.name) {
+        exercises.push(currentExercise as Exercise);
+      }
+      
+      currentExercise = {
+        name: exerciseMatch[1].trim(),
+        sets: parseInt(exerciseMatch[2]),
+        reps: parseInt(exerciseMatch[3].split('-')[0]),  
+        description: ''
+      };
+    } 
+    else if (currentExercise.name && !line.match(/^Day \d+:/i)) {
+      if (currentExercise.description) {
+        currentExercise.description += ' ' + line;
+      } else {
+        currentExercise.description = line;
+      }
     }
+  }
+  
+  if (currentExercise.name) {
+    exercises.push(currentExercise as Exercise);
   }
   
   return exercises;
 };
 
-const parseMultiDayWorkout = (content: string): { dayNumber: number, name: string, exercises: Exercise[] }[] => {
-  const dayRegex = /day\s*(\d+)[:\s-]+([^\n]+)/gi;
-  const workoutSplits: { dayNumber: number, name: string, exercises: Exercise[] }[] = [];
-  const dayMatches: { day: string, title: string, index: number }[] = [];
-  
+const parseMultiDayWorkout = (content: string): { dayNumber: number, name: string, exercises: Exercise[], warmUp?: string, coolDown?: string, notes?: string }[] => {
+  const workoutSplits: { dayNumber: number, name: string, exercises: Exercise[], warmUp?: string, coolDown?: string, notes?: string }[] = [];
+
+  const dayRegex = /day\s*(\d+)\s*:\s*([^\n]+)/gi;
   let match: RegExpExecArray | null;
+  const dayMatches: DayMatch[] = [];
+
   while ((match = dayRegex.exec(content)) !== null) {
     dayMatches.push({
       day: match[1],
@@ -95,29 +111,36 @@ const parseMultiDayWorkout = (content: string): { dayNumber: number, name: strin
       index: match.index
     });
   }
-  
+
   for (let i = 0; i < dayMatches.length; i++) {
-    const currentDay = dayMatches[i];
-    const nextDayIndex = i < dayMatches.length - 1 ? dayMatches[i + 1].index : content.length;
-    const dayContent = content.substring(currentDay.index, nextDayIndex);
+    const currentMatch = dayMatches[i];
+    const nextMatch = i < dayMatches.length - 1 ? dayMatches[i + 1] : null;
+    
+    const startIndex = currentMatch.index;
+    const endIndex = nextMatch ? nextMatch.index : content.length;
+    
+    const dayContent = content.substring(startIndex, endIndex);
+
+    const warmUpMatch = dayContent.match(/WARM-UP:\s*\n([\s\S]*?)(?=\n\n|\n[A-Z])/i);
+    const coolDownMatch = dayContent.match(/COOL-DOWN:\s*\n([\s\S]*?)(?=\n\n|\n[A-Z])/i);
+    const notesMatch = dayContent.match(/NOTES.*?:\s*\n([\s\S]*?)(?=\n\n|\n[A-Z]|$)/i);
+    
+    const warmUp = warmUpMatch ? warmUpMatch[1].trim() : undefined;
+    const coolDown = coolDownMatch ? coolDownMatch[1].trim() : undefined;
+    const notes = notesMatch ? notesMatch[1].trim() : undefined;
     
     const exercises = parseExercisesFromText(dayContent);
     
     workoutSplits.push({
-      dayNumber: parseInt(currentDay.day),
-      name: currentDay.title,
-      exercises: exercises
+      dayNumber: parseInt(currentMatch.day),
+      name: currentMatch.title,
+      exercises,
+      warmUp,
+      coolDown,
+      notes
     });
   }
-  
-  if (workoutSplits.length === 0) {
-    workoutSplits.push({
-      dayNumber: 1,
-      name: "Full Body Workout",
-      exercises: []
-    });
-  }
-  
+
   return workoutSplits;
 };
 
@@ -222,31 +245,54 @@ export function GeminiCard() {
     setResponse("Generating your personalized workout plan...");
 
     try {
-      const prompt = `Create a personalized workout plan for a ${quizData.userProfile.fitnessLevel} fitness level ${quizData.userProfile.bodyStats.gender || ""} user who wants to focus on ${quizData.userProfile.fitnessGoals}. 
+      const prompt = `Create a structured workout program for a ${quizData.userProfile.fitnessLevel} fitness level ${quizData.userProfile.bodyStats.gender || ""} user who wants to focus on ${quizData.userProfile.fitnessGoals}. 
       They can workout ${quizData.userProfile.workoutSchedule.daysPerWeek} days per week for ${quizData.userProfile.workoutSchedule.sessionLength} each session. 
       They have access to ${quizData.userProfile.equipment} and prefer ${quizData.userProfile.workoutPreference} style workouts. 
       Their body stats are: height ${quizData.userProfile.bodyStats.height}, weight ${quizData.userProfile.bodyStats.weight}, age ${quizData.userProfile.bodyStats.age}, gender ${quizData.userProfile.bodyStats.gender || "not specified"}. 
       ${quizData.userProfile.limitations && quizData.userProfile.limitations !== 'None' ? 'They have the following limitations: ' + quizData.userProfile.limitations : ''}
       
-      Please create a ${quizData.userProfile.workoutSchedule.daysPerWeek}-day workout routine with different focus areas. Format it as:
+      IMPORTANT FORMATTING INSTRUCTIONS:
+      1. DO NOT include any meal plans or nutrition advice
+      2. Each day should contain 3-6 actual exercises only
+      3. Include a WARM-UP and COOL-DOWN section for each day with specific activities
+      4. DO NOT add any explanatory comments about the workout
       
-      Day 1: [Workout Type] (e.g., Strength, Cardio, HIIT, etc.)
-      [Exercise 1] - [Sets] sets x [Reps] reps
-      [Brief description of Exercise 1]
+      Format each day's workout EXACTLY as follows:
       
-      [Exercise 2] - [Sets] sets x [Reps] reps
-      [Brief description of Exercise 2]
+      Day 1: [Muscle Group/Workout Type]
       
-      And so on for each exercise, then for Day 2, 3, etc.
+      WARM-UP:
+      - [Specific warm-up activity 1] - [Duration or reps]
+      - [Specific warm-up activity 2] - [Duration or reps]
       
-      For each day, include:
-      1. A clear title for the workout day (e.g., Day 1: Upper Body Strength)
-      2. 4-6 specific exercises with sets and reps recommendations
-      3. Brief description for each exercise
+      [Exercise Name 1] - [Sets] sets x [Reps] reps (unless it involves cardio, then use [Time] Minutes)
+      [Short exercise description focusing only on form]
       
-      Make the workout progressive and balanced across the week.`;
+      [Exercise Name 2] - [Sets] sets x [Reps] reps (unless it involves cardio, then use [Time] Minutes)
+      [Short exercise description focusing only on form]
+      
+      (Continue with exercises for this day)
+      
+      COOL-DOWN:
+      - [Specific cool-down activity 1] - [Duration]
+      - [Specific cool-down activity 2] - [Duration]
+      
+      NOTES (optional):
+      - Any important tips or advice for this workout day
+      
+      Day 2: [Muscle Group/Workout Type]
+      
+      (and so on for each day)
+      
+      For ALL exercises:
+      1. Exercise names should be specific moves (e.g., "Barbell Squat")
+      2. Each exercise MUST have specific sets and reps and/or duration for cardio (e.g., 3 sets x 10 reps)
+      3. Keep descriptions brief and form-focused - NO explanatory comments
+      4. Include specific warm-up and cool-down activities with durations for each day
+      5. DO NOT add any explanatory text between days or at the beginning/end of the plan
+      
+      Create a ${quizData.userProfile.workoutSchedule.daysPerWeek}-day program that is progressive and balanced.`;
 
-      // Handle Gemini API request with retry
       let result = "";
       let retryCount = 0;
       const maxRetries = 3;
@@ -292,11 +338,22 @@ export function GeminiCard() {
           setSavedProgramId(savedProgram.id);
           
           for (const split of workoutSplits) {
+            let combinedNotes = '';
+            if (split.warmUp) {
+              combinedNotes += "WARM-UP:\n" + split.warmUp + "\n\n";
+            }
+            if (split.coolDown) {
+              combinedNotes += "COOL-DOWN:\n" + split.coolDown + "\n\n";
+            }
+            if (split.notes) {
+              combinedNotes += split.notes;
+            }
             const splitToSave = {
               program_id: savedProgram.id,
               name: split.name,
               day_number: split.dayNumber,
-              exercises: split.exercises
+              exercises: split.exercises,
+              notes: combinedNotes || undefined
             };
             
             console.log("Saving workout split:", splitToSave);
@@ -391,9 +448,59 @@ export function GeminiCard() {
       </Button>
 
       {response && (
-        <div className="mt-4 p-6 border rounded shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
+        <div className="mt-4">
           <h3 className="font-bold text-xl mb-4 dark:text-white">Your Personalized Workout Plan:</h3>
-          <div className="whitespace-pre-wrap prose max-w-none dark:text-gray-300">{response}</div>
+          
+          <div className="whitespace-pre-wrap prose max-w-none dark:text-gray-300 bg-white dark:bg-gray-800 border rounded-lg shadow-sm p-6 mb-4">
+            {response.split(/\n{2,}/).map((paragraph, index) => {
+              if (paragraph.trim().startsWith("NOTES") || paragraph.match(/^[A-Z\s]+:$/)) {
+                return null;
+              }
+              
+              if (paragraph.trim().startsWith("WARM-UP:")) {
+                return (
+                  <div key={index} className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                    <div className="font-medium text-blue-700 dark:text-blue-400">{paragraph}</div>
+                  </div>
+                );
+              }
+              
+              if (paragraph.trim().startsWith("COOL-DOWN:")) {
+                return (
+                  <div key={index} className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                    <div className="font-medium text-green-700 dark:text-green-400">{paragraph}</div>
+                  </div>
+                );
+              }
+              
+              if (paragraph.match(/^Day \d+:/i)) {
+                return (
+                  <div key={index} className="mt-6 mb-4">
+                    <h3 className="text-lg font-bold text-teal-600 dark:text-teal-400 pb-2 border-b border-teal-200 dark:border-teal-800">{paragraph}</h3>
+                  </div>
+                );
+              }
+              
+              return <div key={index} className="mb-4">{paragraph}</div>;
+            })}
+          </div>
+          
+          {response.split(/\n{2,}/).some(p => p.trim().startsWith("NOTES")) && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+              <h4 className="font-bold text-amber-700 dark:text-amber-400 mb-2">Important Notes</h4>
+              {response.split(/\n{2,}/).map((paragraph, index) => {
+                if (paragraph.trim().startsWith("NOTES")) {
+                  return (
+                    <div key={`note-${index}`} className="text-amber-800 dark:text-amber-300">
+                      {paragraph.replace(/^NOTES\s*\(optional\)?:/, "").trim()}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          )}
+          
           {savedProgramId && (
             <div className="mt-4 text-teal-600 dark:text-teal-400">
               Your workout plan has been saved to your account.
