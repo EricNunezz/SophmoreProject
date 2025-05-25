@@ -503,7 +503,6 @@ export function GeminiCard() {
           
           {savedProgramId && (
             <div className="mt-4 text-teal-600 dark:text-teal-400">
-              Your workout plan has been saved to your account.
             </div>
           )}
         </div>
